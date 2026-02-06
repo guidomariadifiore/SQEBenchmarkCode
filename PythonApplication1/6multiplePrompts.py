@@ -12,9 +12,10 @@ OLLAMA_GENERATE_URL = f"http://localhost:11434/api/generate"
 prompt = "Write the dijkstra algorithm in Javascript. Output only the source code, no explaination."
 
 # define the model to use
-OLLAMA_MODEL = "gemma3:1b" # example
+OLLAMA_MODEL = "gemma3:1b"  # example
 
-def generate_with_stream(model: str, prompt: str, options : dict = None):
+
+def generate_with_stream(model: str, prompt: str, options: dict = None):
 
     # in this case we measure inside the generation function
     start = time.time()
@@ -24,7 +25,7 @@ def generate_with_stream(model: str, prompt: str, options : dict = None):
         json={
             "model": model,
             "prompt": prompt,
-            "stream": True, 
+            "stream": True,
             "options": options,
         },
     )
@@ -59,11 +60,10 @@ def generate_with_stream(model: str, prompt: str, options : dict = None):
     text = "".join(chunks)
 
     # the 'data' variables contains now the last json object
-    ollama_total_duration = data['total_duration'] * 10**-9
-    
+    ollama_total_duration = data["total_duration"] * 10**-9
+
     ttft = (first_token_time - start) if first_token_time else 0.0
     itl = (total_gen_time - ttft) / max(len(chunks) - 1, 1)
-
 
     # in this case the response is composed of multiple json objects (you can check by directly calling the endpoint)
 
@@ -80,17 +80,17 @@ print(f"End-to-end generation time: {e2e:.6f} s")
 print(f"Time to first token (TTFT): {ttft:.6f} s")
 print(f"Inter-token latency (ITL): {itl:.6f} s")
 
-GENERATION_OPTIONS = { 
-    "num_predict": 256, # we can limit the maximum number of generated tokens
-    "temperature": 0 # handle randomness of the generation process
+GENERATION_OPTIONS = {
+    "num_predict": 256,  # we can limit the maximum number of generated tokens
+    "temperature": 0,  # handle randomness of the generation process
 }
-NUMBER_OF_ITERATIONS = 3 # define the number of iterations
-# TODO: REMEMBER TO CHANGE THIS LATER
+NUMBER_OF_ITERATIONS = 3  # define the number of iterations
+#TODO maybe update later
 
 prompts = []
 
 # load the input prompts
-with jsonlines.open("sample_prompts.jsonl", "r") as p_file:
+with jsonlines.open("PythonApplication1/sample_prompts.jsonl", "r") as p_file:
     prompts = [prompt for prompt in p_file]
 
 selected_prompts = prompts
@@ -105,22 +105,27 @@ pbar = tqdm(total=total_iterations, desc="Progress")
 for prompt_idx, prompt in enumerate(selected_prompts):
     for it in range(NUMBER_OF_ITERATIONS):
 
-        pbar.set_description(f"Prompt {prompt_idx+1}/{len(selected_prompts)} | Iter {it+1}/{NUMBER_OF_ITERATIONS}")
-        
-        response, ttft, itl, e2e, ollama_total_duration = generate_with_stream(
-            model=OLLAMA_MODEL,
-            prompt=prompt["prompt"],
-            options=GENERATION_OPTIONS
+        pbar.set_description(
+            f"Prompt {prompt_idx+1}/{len(selected_prompts)} | Iter {it+1}/{NUMBER_OF_ITERATIONS}"
         )
 
-        results.append({
-            "prompt": prompt["prompt"],
-            "it": it,
-            "ollama_total_gen_time": ollama_total_duration,
-            "end_to_end_latency": e2e,
-            "TTFT": ttft,
-            "ITL": itl
-        })
+        response, ttft, itl, e2e, ollama_total_duration = generate_with_stream(
+            model=OLLAMA_MODEL, prompt=prompt["prompt"], options=GENERATION_OPTIONS
+        )
+
+        results.append(
+            {
+                "prompt": prompt["prompt"],
+                "input_length": len(prompt["prompt"]),
+                "response_length": len(response),
+                "it": it,
+                "ollama_total_gen_time": ollama_total_duration,
+                "end_to_end_latency": e2e,
+                "TTFT": ttft,
+                "ITL": itl,
+                "model": OLLAMA_MODEL
+            }
+        )
 
         pbar.update()
 pbar.close()
@@ -128,7 +133,7 @@ pbar.close()
 results = pd.DataFrame(results)
 
 with jsonlines.open("results.jsonl", "w") as out_file:
-    out_file.write_all(results.to_dict('records'))
+    out_file.write_all(results.to_dict("records"))
 
 results.describe()
 
@@ -137,12 +142,14 @@ import numpy as np
 
 ### ===> perform an in-depth examination of the value distribution
 
+
 def print_stats(stats):
     for k, v in stats.items():
         if isinstance(v, tuple):
             print(f"{k}: ({v[0]:.3f}, {v[1]:.3f})")
         else:
             print(f"{k}: {v:.3f}")
+
 
 def summary_stats(data):
     mu = data.mean()
@@ -159,9 +166,10 @@ def summary_stats(data):
         "Variance (σ²)": variance,
         "Standard deviation (σ)": sigma,
         "Coefficient of variation (CV)": cv,
-        "Standard error of the mean (SEM)": std_error
+        "Standard error of the mean (SEM)": std_error,
     }
     return statistics
+
 
 # example on TTFT
 print_stats(summary_stats(results.TTFT))
@@ -173,7 +181,7 @@ import matplotlib.pyplot as plt
 latency_measurements = results.TTFT.values
 
 plt.figure(figsize=(10, 2))
-plt.plot(latency_measurements, color="black") 
+plt.plot(latency_measurements, color="black")
 
 plt.axhline(min(latency_measurements), color="lightgrey", ls="--")
 plt.axhline(max(latency_measurements), color="lightgrey", ls="--")
