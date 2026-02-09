@@ -4,7 +4,7 @@ import seaborn as sns
 import os
 
 # --- CONFIGURATION ---
-RESULTS_FILE = "results_script6_1b_FIXED.jsonl"  
+RESULTS_FILE = "results_script5_1b.jsonl"  
 OUTPUT_DIR = "analysis_output"
 
 # Create output directory if it doesn't exist
