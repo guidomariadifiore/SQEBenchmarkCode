@@ -6,13 +6,13 @@ import json
 import pandas as pd
 
 # define the Ollama endpoint for the generation
-OLLAMA_GENERATE_URL = f"http://localhost:11434/api/generate"
+OLLAMA_GENERATE_URL = f"http://127.0.0.1:11434/api/generate"
 
 # use a sample prompt to test the inference function
 prompt = "Write the dijkstra algorithm in Javascript. Output only the source code, no explaination."
 
 # define the model to use
-OLLAMA_MODEL = "gemma3:270m"  
+OLLAMA_MODEL = "gemma3:1b"
 
 
 def generate_with_stream(model: str, prompt: str, options: dict = None):
@@ -85,7 +85,7 @@ GENERATION_OPTIONS = {
     "temperature": 0,  # handle randomness of the generation process
 }
 NUMBER_OF_ITERATIONS = 30  # define the number of iterations
-#TODO maybe update later
+# TODO maybe update later
 
 prompts = []
 
@@ -109,7 +109,7 @@ for prompt_idx, prompt in enumerate(selected_prompts):
             f"Prompt {prompt_idx+1}/{len(selected_prompts)} | Iter {it+1}/{NUMBER_OF_ITERATIONS}"
         )
 
-        response, ttft, itl, e2e, ollama_total_duration = generate_with_stream(
+        response, e2e, ttft, itl, ollama_total_duration = generate_with_stream(
             model=OLLAMA_MODEL, prompt=prompt["prompt"], options=GENERATION_OPTIONS
         )
 
@@ -123,7 +123,7 @@ for prompt_idx, prompt in enumerate(selected_prompts):
                 "end_to_end_latency": e2e,
                 "TTFT": ttft,
                 "ITL": itl,
-                "model": OLLAMA_MODEL
+                "model": OLLAMA_MODEL,
             }
         )
 
