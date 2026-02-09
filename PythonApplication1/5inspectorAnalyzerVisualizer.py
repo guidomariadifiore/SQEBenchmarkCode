@@ -12,7 +12,7 @@ OLLAMA_GENERATE_URL = f"http://localhost:11434/api/generate"
 prompt = "Write the dijkstra algorithm in Javascript. Output only the source code, no explaination."
 
 # define the model to use
-OLLAMA_MODEL = "gemma3:1b" # example
+OLLAMA_MODEL = "gemma3:270m" # example
 
 def generate_with_stream(model: str, prompt: str, options : dict = None):
 
